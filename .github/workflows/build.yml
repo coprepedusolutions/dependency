@@ -1,4 +1,4 @@
-name: Upload AAR to GitHub Packages
+name: Build and Publish AAR to GitHub Packages
 
 on:
   push:
@@ -9,28 +9,27 @@ permissions:
   packages: write
 
 jobs:
-  upload-aar:
+  build-and-publish:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Locate AAR file
-        run: |
-          echo "📁 Locating AAR file..."
-          find . -name "*.aar" > aar_path.txt
-          AAR_PATH=$(cat aar_path.txt)
-          echo "aar=$AAR_PATH" >> $GITHUB_OUTPUT
-        id: locate-aar
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
 
-      - name: Upload to GitHub Packages
-        run: |
-          echo "🚀 Uploading ${{ steps.locate-aar.outputs.aar }} to GitHub Packages..."
-          curl -X PUT \
-            -u "${{ secrets.GITHUB_ACTOR }}:${{ secrets.GITHUB_TOKEN }}" \
-            -H "Content-Type: application/java-archive" \
-            --data-binary @"${{ steps.locate-aar.outputs.aar }}" \
-            "https://maven.pkg.github.com/OWNER/REPO/com/example/library/1.0.0/library-1.0.0.aar"
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
 
+      - name: Build release AAR
+        run: ./gradlew :your-library:assembleRelease
 
+      - name: Publish to GitHub Packages
+        run: ./gradlew :your-library:publishReleasePublicationToGitHubPackagesRepository
+        env:
+          USERNAME: ${{ secrets.GITHUB_ACTOR }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
