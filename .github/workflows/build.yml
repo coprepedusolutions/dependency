@@ -1,0 +1,57 @@
+name: Auto Publish Changed AAR Modules
+
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  detect-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: 17
+          cache: gradle
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Set up GitHub Packages credentials
+        run: |
+          echo "USERNAME=${{ secrets.GITHUB_ACTOR }}" >> $GITHUB_ENV
+          echo "TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+
+      - name: Detect Changed Modules with build.gradle
+        id: detect
+        run: |
+          echo "🔍 Detecting changed modules with build.gradle..."
+          CHANGED_MODULES=""
+          for folder in $(git diff --name-only $(git rev-list --max-parents=0 HEAD) HEAD | awk -F/ '{print $1}' | sort -u); do
+            if [ -f "$folder/build.gradle" ] || [ -f "$folder/build.gradle.kts" ]; then
+              echo "📦 Found module: $folder"
+              CHANGED_MODULES="$CHANGED_MODULES $folder"
+            fi
+          done
+
+          CHANGED_MODULES=$(echo "$CHANGED_MODULES" | xargs) # clean whitespace
+          echo "modules=$CHANGED_MODULES" >> $GITHUB_OUTPUT
+
+      - name: Publish Changed Modules
+        if: ${{ steps.detect.outputs.modules != '' }}
+        run: |
+          echo "📦 Modules to publish: ${{ steps.detect.outputs.modules }}"
+          for module in ${{ steps.detect.outputs.modules }}; do
+            echo "🚀 Publishing $module..."
+            ./gradlew ":$module:publishReleasePublicationToGitHubPackagesRepository" \
+              || echo "❌ Failed to publish $module"
+          done
