@@ -1,4 +1,4 @@
-name: Build and Publish AAR to GitHub Packages
+name: Publish Android Modules to GitHub Packages
 
 on:
   push:
@@ -9,14 +9,17 @@ permissions:
   packages: write
 
 jobs:
-  build-and-publish:
+  publish:
     runs-on: ubuntu-latest
 
+    env:
+      MODULES: common downloader utils network tools  # 🔧 Explicitly list your module names here
+
     steps:
-      - name: Checkout code
+      - name: Checkout source code
         uses: actions/checkout@v3
 
-      - name: Set up JDK
+      - name: Set up JDK for Android
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -25,11 +28,17 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Build release AAR
-        run: ./gradlew :your-library:assembleRelease
+      - name: Configure GitHub Packages credentials
+        run: |
+          echo "USERNAME=${{ secrets.GITHUB_ACTOR }}" >> $GITHUB_ENV
+          echo "TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
 
-      - name: Publish to GitHub Packages
-        run: ./gradlew :your-library:publishReleasePublicationToGitHubPackagesRepository
-        env:
-          USERNAME: ${{ secrets.GITHUB_ACTOR }}
-          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and Publish AARs
+        run: |
+          echo "📦 Publishing these modules: $MODULES"
+          for module in $MODULES; do
+            echo "🚀 Building and Publishing $module"
+            ./gradlew ":$module:assembleRelease"
+            ./gradlew ":$module:publishReleasePublicationToGitHubPackagesRepository" \
+              || echo "❌ Failed to publish $module"
+          done
