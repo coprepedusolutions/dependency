@@ -1,4 +1,4 @@
-name: Publish Changed AAR Modules
+name: Publish AAR to GitHub Packages
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   packages: write
 
 jobs:
-  detect-and-publish:
+  publish:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,41 +19,20 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin' # Eclipse Temurin 
+          distribution: 'temurin'
           java-version: 17
-          cache: gradle
-          
+
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Set up GitHub Packages credentials
+      - name: Configure GitHub Packages credentials
         run: |
           echo "USERNAME=${{ secrets.GITHUB_ACTOR }}" >> $GITHUB_ENV
           echo "TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
 
-      - name: Detect Changed Modules with build.gradle
-        id: detect
-        run: |
-          echo "🔍 Detecting changed modules with build.gradle..."
-          CHANGED_MODULES=""
-          for folder in $(git diff --name-only $(git rev-list --max-parents=0 HEAD) HEAD | awk -F/ '{print $1}' | sort -u); do
-            if [ -f "$folder/build.gradle" ] || [ -f "$folder/build.gradle.kts" ]; then
-              echo "📦 Found module: $folder"
-              CHANGED_MODULES="$CHANGED_MODULES $folder"
-            fi
-          done
-
-          CHANGED_MODULES=$(echo "$CHANGED_MODULES" | xargs) # clean whitespace
-          echo "modules=$CHANGED_MODULES" >> $GITHUB_OUTPUT
-
-      - name: Publish Changed Modules
-        if: ${{ steps.detect.outputs.modules != '' }}
-        run: |
-          echo "📦 Modules to publish: $MODULES"
-          for module in $MODULES; do
-            echo "🚀 Publishing $module..."
-            ./gradlew ":$module:publishReleasePublicationToGitHubPackagesRepository" \
-              || echo "❌ Failed to publish $module"
-          done
+      - name: Publish AAR from module
+        run: ./gradlew :your-library-module-name:publishReleasePublicationToGitHubPackagesRepository
         env:
-          MODULES: ${{ steps.detect.outputs.modules }}
+          USERNAME: ${{ secrets.GITHUB_ACTOR }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
