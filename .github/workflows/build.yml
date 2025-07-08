@@ -1,4 +1,4 @@
-name: Auto Publish Changed AAR Modules
+name: Publish Changed AAR Modules
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
+          distribution: 'temurin' # Eclipse Temurin 
           java-version: 17
           cache: gradle
 
