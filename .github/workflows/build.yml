@@ -49,9 +49,11 @@ jobs:
       - name: Publish Changed Modules
         if: ${{ steps.detect.outputs.modules != '' }}
         run: |
-          echo "📦 Modules to publish: ${{ steps.detect.outputs.modules }}"
-          for module in ${{ steps.detect.outputs.modules }}; do
+          echo "📦 Modules to publish: $MODULES"
+          for module in $MODULES; do
             echo "🚀 Publishing $module..."
             ./gradlew ":$module:publishReleasePublicationToGitHubPackagesRepository" \
               || echo "❌ Failed to publish $module"
           done
+        env:
+          MODULES: ${{ steps.detect.outputs.modules }}
