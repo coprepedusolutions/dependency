@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      MODULES: common downloader utils network tools  # 🔧 Explicitly list your module names here
+      MODULES: ffmpeg
 
     steps:
       - name: Checkout source code
