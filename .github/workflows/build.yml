@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      MODULES: ffmpeg
+      MODULES: ffmpeg library aria2c common
 
     steps:
       - name: Checkout source code
