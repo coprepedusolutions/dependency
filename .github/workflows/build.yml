@@ -22,6 +22,10 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
+      - name: Check AAR Exists
+        run: test -f ./build/outputs/aar/your-library-release.aar
+
+
       - name: Publish Prebuilt AAR
         run: ./gradlew publish
         env:
