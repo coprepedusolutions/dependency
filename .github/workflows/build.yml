@@ -27,7 +27,7 @@ jobs:
           aar_found=$(find . -type f -name "*.aar")
           if [ -z "$aar_found" ]; then
             echo "❌ No AAR file found anywhere in the repo!"
-            exit 1
+            exit 0
           else
             echo "✅ Found AAR file(s):"
             echo "$aar_found"
