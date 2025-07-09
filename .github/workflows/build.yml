@@ -5,12 +5,11 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-  workflow_dispatch: 
+  workflow_dispatch:
 
-  
 jobs:
   upload-aar:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04  # Use LTS for stability
 
     steps:
       - name: Checkout Code
@@ -22,19 +21,22 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
-      - name: Verify AAR File Exists
+      - name: Check for Any AAR File
+        id: check-aar
         run: |
-          aar_found=$(find . -type f -name "*.aar")
-          if [ -z "$aar_found" ]; then
-            echo "❌ No AAR file found anywhere in the repo!"
-            exit 0
+          echo "📦 Searching for .aar files..."
+          aar_files=$(find . -type f -name "*.aar")
+          if [ -z "$aar_files" ]; then
+            echo "⏹️ No .aar file found. Skipping publish step."
+            echo "should_publish=false" >> $GITHUB_OUTPUT
           else
-            echo "✅ Found AAR file(s):"
-            echo "$aar_found"
+            echo "✅ Found .aar file(s):"
+            echo "$aar_files"
+            echo "should_publish=true" >> $GITHUB_OUTPUT
           fi
 
-
       - name: Publish Prebuilt AAR
+        if: steps.check-aar.outputs.should_publish == 'true'
         run: ./gradlew publish
         env:
           USERNAME: ${{ github.actor }}
