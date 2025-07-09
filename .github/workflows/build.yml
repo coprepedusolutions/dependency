@@ -1,10 +1,13 @@
 name: Upload Prebuilt AAR
 
 on:
-  workflow_dispatch: 
   push:
     branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch: 
 
+  
 jobs:
   upload-aar:
     runs-on: ubuntu-latest
