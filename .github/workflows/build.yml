@@ -1,29 +1,26 @@
-name: Publish AAR to GitHub Packages
+name: Upload Prebuilt AAR
 
 on:
+  workflow_dispatch: 
   push:
     branches:
-      - main  
+      - main 
 
 jobs:
-  publish-aar:
-    name: Build and Publish AAR
+  upload-aar:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Set up JDK
-        uses: actions/setup-java@v4
+      - name: Set up Java
+        uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '11'
 
-      - name: Build AAR
-        run: ./gradlew assembleRelease
-
-      - name: Publish to GitHub Packages
+      - name: Publish Prebuilt AAR
         run: ./gradlew publish
         env:
           USERNAME: ${{ github.actor }}
