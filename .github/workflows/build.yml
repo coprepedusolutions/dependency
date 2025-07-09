@@ -1,44 +1,30 @@
-name: Publish Android Modules to GitHub Packages
+name: Publish AAR to GitHub Packages
 
 on:
   push:
-    branches: [ main ]
-
-permissions:
-  contents: read
-  packages: write
+    branches:
+      - main  # Change this if your default branch is different
 
 jobs:
-  publish:
+  publish-aar:
+    name: Build and Publish AAR
     runs-on: ubuntu-latest
 
-    env:
-      MODULES: ffmpeg library aria2c common
-
     steps:
-      - name: Checkout source code
+      - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Set up JDK for Android
-        uses: actions/setup-java@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: 17
+          java-version: '11'
 
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
+      - name: Build AAR
+        run: ./gradlew assembleRelease
 
-      - name: Configure GitHub Packages credentials
-        run: |
-          echo "USERNAME=${{ secrets.GITHUB_ACTOR }}" >> $GITHUB_ENV
-          echo "TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
-
-      - name: Build and Publish AARs
-        run: |
-          echo "📦 Publishing these modules: $MODULES"
-          for module in $MODULES; do
-            echo "🚀 Building and Publishing $module"
-            ./gradlew ":$module:assembleRelease"
-            ./gradlew ":$module:publishReleasePublicationToGitHubPackagesRepository" \
-              || echo "❌ Failed to publish $module"
-          done
+      - name: Publish to GitHub Packages
+        run: ./gradlew publish
+        env:
+          USERNAME: ${{ github.actor }}
+          PASSWORD: ${{ secrets.GITHUB_TOKEN }}
