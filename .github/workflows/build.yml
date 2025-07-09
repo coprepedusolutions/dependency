@@ -22,15 +22,17 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
-      - name: Verify Any AAR File Exists
+      - name: Verify AAR File Exists
         run: |
-          aar_count=$(find ./build -name "*.aar" | wc -l)
-          if [ "$aar_count" -eq "0" ]; then
-            echo "❌ No AAR file found in build directory."
+          aar_found=$(find . -type f -name "*.aar")
+          if [ -z "$aar_found" ]; then
+            echo "❌ No AAR file found anywhere in the repo!"
             exit 1
           else
-            echo "✅ Found $aar_count AAR file(s). Proceeding..."
+            echo "✅ Found AAR file(s):"
+            echo "$aar_found"
           fi
+
 
       - name: Publish Prebuilt AAR
         run: ./gradlew publish
