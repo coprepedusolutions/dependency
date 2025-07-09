@@ -3,7 +3,7 @@ name: Publish AAR to GitHub Packages
 on:
   push:
     branches:
-      - main  # Change this if your default branch is different
+      - main  
 
 jobs:
   publish-aar:
@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '11'
